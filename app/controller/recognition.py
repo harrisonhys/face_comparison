@@ -78,13 +78,13 @@ class Recognition:
         result_skd      = self.select(query_skd, (no_pensiun,))
         
         if(len(result_skd) == 0) :
-            raise HTTPException(status_code=404, detail="SKD Tidak ditemukan")
+            raise HTTPException(status_code=404, detail={"message" : "SKD Tidak ditemukan"})
         
         query_files     = "SELECT * FROM files WHERE model_id = %s AND type='photo' order by id desc LIMIT 1"
         result_files    = self.select(query_files, (result_skd[0]['id'],))
         
         if(len(result_files) == 0) :
-            raise HTTPException(status_code=404, detail="Photo Tidak ditemukan")
+            raise HTTPException(status_code=404, detail={"message" : "Foto Tidak ditemukan"})
         
         result          = {
             'skd'  : result_skd[0],
@@ -106,8 +106,13 @@ class Recognition:
         ftp_downloader.download_file(remote_path, local_path)
         ftp_downloader.disconnect()
         
-        fr  = DeepFaceMethode(local_path, file_path)  
-        res = fr.process()  
+        try:
+            fr  = DeepFaceMethode(local_path, file_path)  
+            res = fr.process()  
+        except Exception as e:
+            self.delete_file(local_path)
+            self.delete_file(file_path)
+            raise HTTPException(status_code=404, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
         
         # frc = FaceRecognitionMethode(local_path, file_path)
         # res = frc.process()
