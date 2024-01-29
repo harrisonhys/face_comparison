@@ -12,7 +12,6 @@ from app.controller.lib.ftp_downloader import FTPDownloader
 from fastapi import HTTPException
 from app.controller.lib.deep_face_recognition import DeepFaceMethode
 from app.controller.lib.logger import DailyLogger
-from app.controller.lib.face_recognition import FaceRecognitionMethode
 
 
 class Recognition:
@@ -113,9 +112,6 @@ class Recognition:
             self.delete_file(local_path)
             self.delete_file(file_path)
             raise HTTPException(status_code=404, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
-        
-        # frc = FaceRecognitionMethode(local_path, file_path)
-        # res = frc.process()
         
         result.update({'result' : res})
         
