@@ -1,3 +1,5 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 from deepface import DeepFace
 
 class DeepFaceMethode:
