@@ -1,7 +1,11 @@
 from typing import Union
 from fastapi import FastAPI, File, UploadFile
 from app.controller.recognition import Recognition
-import logging
+
+import os
+
+os.environ["CUDA_VISIBLE_DEVICES"]=""
+os.environ["TF_ENABLE_ONEDNN_OPTS"]="0"
 
 app = FastAPI(title='Api Face Recognition', debug=True)
 
