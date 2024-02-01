@@ -73,12 +73,14 @@ class Recognition:
         
         log             = DailyLogger()
         
+        # Find last otentikasi record
         query_skd       = "SELECT * FROM data_skd WHERE no_pensiun = %s order by id desc LIMIT 1"
         result_skd      = self.select(query_skd, (no_pensiun,))
         
         if(len(result_skd) == 0) :
             raise HTTPException(status_code=404, detail={"message" : "SKD Tidak ditemukan"})
         
+        # Retrieve photos on the file server
         query_files     = "SELECT * FROM files WHERE model_id = %s AND type='photo' order by id desc LIMIT 1"
         result_files    = self.select(query_files, (result_skd[0]['id'],))
         
@@ -93,6 +95,7 @@ class Recognition:
         
         unique_id       = uuid.uuid4()
         
+        # Save photos to local path
         file_path = 'app/photos_compare/'+str(unique_id)+'.'+file.filename.split('.')[1]
         with open(file_path, "wb") as local_file:
             local_file.write(file.file.read())
@@ -105,6 +108,7 @@ class Recognition:
         ftp_downloader.download_file(remote_path, local_path)
         ftp_downloader.disconnect()
         
+        # Comparing between two images
         try:
             fr  = DeepFaceMethode(local_path, file_path)  
             res = fr.process()  
@@ -125,7 +129,7 @@ class Recognition:
             'data_tahun' : result_skd[0]['tahun_pelaporan'], 
             'data_id' : result_skd[0]['id'], 
             'result' : res
-            }
+        }
         
         log.make_log(res_data)
         

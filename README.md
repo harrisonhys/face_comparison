@@ -1,27 +1,27 @@
 <div align="center" id="top"> 
-  <img src="./.github/app.gif" alt="Face_comparison" />
+  <img src="./.github/app.gif" alt="face_comparison_retired" />
 
   &#xa0;
 
-  <!-- <a href="https://face_comparison.netlify.app">Demo</a> -->
+  <!-- <a href="https://face_comparison_retired.netlify.app">Demo</a> -->
 </div>
 
 <h1 align="center">Face Comparison for Retired monthly authentication</h1>
 
 <p align="center">
-  <img alt="Github top language" src="https://img.shields.io/github/languages/top/harrisonhys/face_comparison?color=56BEB8">
+  <img alt="Github top language" src="https://img.shields.io/github/languages/top/harrisonhys/face_comparison_retired?color=56BEB8">
 
-  <img alt="Github language count" src="https://img.shields.io/github/languages/count/harrisonhys/face_comparison?color=56BEB8">
+  <img alt="Github language count" src="https://img.shields.io/github/languages/count/harrisonhys/face_comparison_retired?color=56BEB8">
 
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/harrisonhys/face_comparison?color=56BEB8">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/harrisonhys/face_comparison_retired?color=56BEB8">
 
-  <img alt="License" src="https://img.shields.io/github/license/harrisonhys/face_comparison?color=56BEB8">
+  <img alt="License" src="https://img.shields.io/github/license/harrisonhys/face_comparison_retired?color=56BEB8">
 
-  <!-- <img alt="Github issues" src="https://img.shields.io/github/issues/harrisonhys/face_comparison?color=56BEB8" /> -->
+  <!-- <img alt="Github issues" src="https://img.shields.io/github/issues/harrisonhys/face_comparison_retired?color=56BEB8" /> -->
 
-  <!-- <img alt="Github forks" src="https://img.shields.io/github/forks/harrisonhys/face_comparison?color=56BEB8" /> -->
+  <!-- <img alt="Github forks" src="https://img.shields.io/github/forks/harrisonhys/face_comparison_retired?color=56BEB8" /> -->
 
-  <!-- <img alt="Github stars" src="https://img.shields.io/github/stars/harrisonhys/face_comparison?color=56BEB8" /> -->
+  <!-- <img alt="Github stars" src="https://img.shields.io/github/stars/harrisonhys/face_comparison_retired?color=56BEB8" /> -->
 </p>
 
 <!-- Status -->
@@ -70,24 +70,82 @@ The following tools were used in this project:
 
 ## :white_check_mark: Requirements ##
 
-Before starting :checkered_flag:, you need to have [Git](https://git-scm.com) and [Node](https://nodejs.org/en/) installed makecsure your machine support [Advanced Vector Extensions (AVX, AVX2)](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions). 
+Before starting this project, you need to have [Git](https://git-scm.com) installed and makesure your machine support [Advanced Vector Extensions (AVX, AVX2)](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions). 
 
 ## :checkered_flag: Starting ##
 
 ```bash
 # Clone this project
-$ git clone https://github.com/harrisonhys/face_comparison
+$ git clone https://github.com/harrisonhys/face_comparison_retired
 
 # Access
-$ cd face_comparison
+$ cd face_comparison_retired
 
-# Install dependencies
-$ yarn
+# Create Virtual Environment
+$ python -m venv .venv
 
-# Run the project
-$ yarn start
+# Activate Virtual Environment
+$ source .venv/bin/activate
 
-# The server will initialize in the <http://localhost:3000>
+# Create Environtment Variable
+$ touch .env
+
+# Install Requirements
+pip install -r requirements.txt
+
+```
+
+```env
+# Set Environtment Variable
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_NAME=
+DB_PASS=
+
+FTP_DO_HOST=
+FTP_DO_USERNAME=
+FTP_DO_PASSWORD=
+```
+
+```bash
+# Run Project
+$ uvicorn app.main:app --reload
+
+# http://localhost:8002/docs
+```
+
+## :checkered_flag: Starting with docker ##
+
+```bash
+# Clone this project
+$ git clone https://github.com/harrisonhys/face_comparison_retired
+
+# Access
+$ cd face_comparison_retired
+
+# Create Environtment Variable
+$ touch .env
+```
+
+```env
+# Set Environtment Variable
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_NAME=
+DB_PASS=
+
+FTP_DO_HOST=
+FTP_DO_USERNAME=
+FTP_DO_PASSWORD=
+```
+
+```bash
+# Run Project
+$ docker-compose up
+
+# http://localhost:8002/docs
 ```
 
 ## :memo: License ##
