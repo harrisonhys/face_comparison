@@ -50,10 +50,12 @@ This application is part of the "Pensioner Authentication" application. It works
 
 This application is built using <a href="https://github.com/tiangolo/fastapi">FastApi</a> and the <a href="https://github.com/serengil/deepface">Deepface</a> library.
 
-
 The comparison data comes from the authentication database, the comparison photo comes from the image obtained from the mobile application, of course, liveness detection has been carried out so that the user does not authenticate with a printed photo.
 
 Every retiree authenticates the last data will be a comparison for authentication in the next period.
+
+"Aplikasi ini merupakan bagian dari aplikasi "Otentikasi Online". Aplikasi ini berfungsi dengan cara membandingkan dua foto wajah dan mendeteksi kemiripan dua wajah dalam foto tersebut. Para pensiunan diwajibkan untuk mengambil foto setiap bulan sebagai bukti bahwa mereka masih hidup (otentikasi). Proses otentikasi akan disetujui secara otomatis ketika foto tersebut identik dengan foto pada data otentikasi sebelumnya. Service ini dibangun khusus untuk proses perbandingan saja; proses lengkap otentikasi terdapat dalam aplikasi utama."
+
 
 ## :sparkles: Features ##
 
@@ -149,6 +151,9 @@ $ docker-compose up
 ```
 
 ## :memo: License ##
+
+
+Help others and your life will be made easier aka "Gunakan semaumu!"
 
 This project is under license from MIT. For more details, see the [LICENSE](LICENSE.md) file.
 

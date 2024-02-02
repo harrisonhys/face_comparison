@@ -69,12 +69,12 @@ class Recognition:
         except Exception as e:
             print(f"Error saving file: {e}")
             
-    def processFaceRecognition(self, no_pensiun, file):
+    def processFaceRecognition(self, no_pensiun, file, method = 'FaceNet'):
         
         log             = DailyLogger()
         
         # Find last otentikasi record
-        query_skd       = "SELECT * FROM data_skd WHERE no_pensiun = %s order by id desc LIMIT 1"
+        query_skd       = "SELECT * FROM data_skd WHERE no_pensiun = %s AND status=2 order by id desc LIMIT 1"
         result_skd      = self.select(query_skd, (no_pensiun,))
         
         if(len(result_skd) == 0) :
@@ -110,12 +110,12 @@ class Recognition:
         
         # Comparing between two images
         try:
-            fr  = DeepFaceMethode(local_path, file_path)  
+            fr  = DeepFaceMethode(local_path, file_path, method)  
             res = fr.process()  
         except Exception as e:
             self.delete_file(local_path)
             self.delete_file(file_path)
-            raise HTTPException(status_code=404, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
+            raise HTTPException(status_code=422, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
         
         result.update({'result' : res})
         
@@ -128,6 +128,7 @@ class Recognition:
             'data_pembanding' : 'skd', 
             'data_tahun' : result_skd[0]['tahun_pelaporan'], 
             'data_id' : result_skd[0]['id'], 
+            'accuracy' : 100-(res['distance']*100),
             'result' : res
         }
         
@@ -138,4 +139,20 @@ class Recognition:
     def delete_file(self, file):
         if os.path.exists(file):
             os.remove(file)
-
+            
+    def clearLog(self, tanggal):
+        file = "app/log/log_"+tanggal+".log"
+        if os.path.exists(file):
+            os.remove(file)
+    
+    def getLog(self):
+        try:
+            # Get the list of files in the specified path
+            file_names = [f for f in os.listdir('app/log/') if os.path.isfile(os.path.join('app/log/', f))]
+            return {
+                'count' : len(file_names),
+                'log' : file_names
+            }
+        except Exception as e:
+            print(f"Error retrieving file names: {e}")
+            return []
