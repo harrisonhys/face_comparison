@@ -1,5 +1,6 @@
 import psycopg2
 import json
+import ast
 import datetime
 import pandas as pd
 from ftplib import FTP
@@ -156,3 +157,27 @@ class Recognition:
         except Exception as e:
             print(f"Error retrieving file names: {e}")
             return []
+    
+    def geDetailLog(self, tanggal):
+        file_path = "app/log/log_"+tanggal+".log"
+        try:
+            with open(file_path, 'r') as file:
+                lines = file.readlines()
+                # Convert each line to a list array
+                data_list = [self.parse_line(line) for line in lines]
+            return {
+                'log' : data_list,
+                'count' : len(data_list)
+            }
+        except Exception as e:
+            print(f"Error reading file: {e}")
+            return []
+    
+    def parse_line(self, line):
+        try:
+            # Parse the string representation of the dictionary into a dictionary
+            data_dict = ast.literal_eval(line.split(' ', 2)[2])
+            return data_dict
+        except Exception as e:
+            print(f"Error parsing line: {e}")
+            return None

@@ -22,6 +22,11 @@ def getLog():
     data = Recognition()
     return data.getLog()
 
+@app.get("/log/{tanggal}")
+def getDetailLog(tanggal:str):
+    data = Recognition()
+    return data.geDetailLog(tanggal)
+
 @app.post("/log/clear")
 def clearLog(tanggal:str):
     data = Recognition()
