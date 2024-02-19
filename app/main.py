@@ -17,6 +17,11 @@ def recognize(no_pensiun:str, method: str, file: UploadFile):
     data = Recognition()
     return data.processFaceRecognition(no_pensiun, file, method)
 
+@app.post("/comparing2face")
+def comparison(img1: UploadFile, img2: UploadFile, method: str):
+    data = Recognition()
+    return data.compareTwoFace(img1, img2, method)
+
 @app.get("/log")
 def getLog():
     data = Recognition()

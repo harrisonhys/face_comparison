@@ -181,3 +181,26 @@ class Recognition:
         except Exception as e:
             print(f"Error parsing line: {e}")
             return None
+        
+    def compareTwoFace(self, img1, img2, method = "SFace"):
+        img1_path = 'app/photos/'+str(uuid.uuid4())+'.'+img1.filename.split('.')[1]
+        img2_path = 'app/photos_compare/'+str(uuid.uuid4())+'.'+img2.filename.split('.')[1]
+        
+        with open(img1_path, "wb") as local_file:
+            local_file.write(img1.file.read())
+        with open(img2_path, "wb") as local_file:
+            local_file.write(img2.file.read())
+            
+        # Comparing between two images
+        try:
+            fr  = DeepFaceMethode(img1_path, img2_path, method)  
+            res = fr.process() 
+            res["accuracy"] = 100-(res['distance']*100)
+            return res
+        except Exception as e:
+            self.delete_file(img1_path)
+            self.delete_file(img2_path)
+            raise HTTPException(status_code=422, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
+        
+        self.delete_file(img1_path)
+        self.delete_file(img2_path)
