@@ -2,17 +2,18 @@ import psycopg2
 import json
 import ast
 import datetime
-import pandas as pd
-from ftplib import FTP
 import os
 import uuid
+import glob
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from app.controller.environment_config import EnvironmentConfig
 from app.controller.lib.ftp_downloader import FTPDownloader
 from fastapi import HTTPException
 from app.controller.lib.deep_face_recognition import DeepFaceMethode
+from app.controller.lib.deep_face_analyse import DeepFaceAnalyse
 from app.controller.lib.logger import DailyLogger
+from ftplib import FTP
 
 
 class Recognition:
@@ -126,7 +127,7 @@ class Recognition:
         res_data = {
             'no_pensiun' : no_pensiun,  
             'penerima_mp' : result_skd[0]['nama_penerima'], 
-            'data_pembanding' : 'skd', 
+            'data_pembanding' : 'autentikasi', 
             'data_tahun' : result_skd[0]['tahun_pelaporan'], 
             'data_id' : result_skd[0]['id'], 
             'accuracy' : 100-(res['distance']*100),
@@ -136,7 +137,77 @@ class Recognition:
         log.make_log(res_data)
         
         return res_data
- 
+    
+    def comparingFromDatabase(self, current_periode_data, previous_periode_data, method = 'FaceNet'):
+        
+        log                         = DailyLogger()
+        
+        # Current Periode Data
+        current_periode_query       = "SELECT * FROM data_skd WHERE id = %s order by id desc LIMIT 1"
+        current_periode_result      = self.select(current_periode_query, (current_periode_data,))
+        
+        if(len(current_periode_result) == 0) :
+            raise HTTPException(status_code=404, detail={"message" : "Autentikasi Tidak Ditemukan"})
+        
+        # Current Periode Photos
+        current_periode_query       = "SELECT * FROM files WHERE model_id = %s AND type='photo' order by id desc LIMIT 1"
+        current_periode_photo       = self.select(current_periode_query, (current_periode_result[0]['id'],))
+        
+        if(len(current_periode_photo) == 0) :
+            raise HTTPException(status_code=404, detail={"message" : "Foto Periode Aktif Tidak ditemukan"})
+        
+        # Previous Periode Data
+        previous_periode_query       = "SELECT * FROM data_skd WHERE id = %s AND status=2 order by id desc LIMIT 1"
+        previous_periode_result      = self.select(previous_periode_query, (previous_periode_data,))
+        
+        if(len(previous_periode_result) == 0) :
+            raise HTTPException(status_code=404, detail={"message" : "Autentikasi Periode Sebelumnya Tidak Ditemukan"})
+        
+        # Previous Periode Photos
+        previous_periode_query       = "SELECT * FROM files WHERE model_id = %s AND type='photo' order by id desc LIMIT 1"
+        previous_periode_photo       = self.select(previous_periode_query, (previous_periode_result[0]['id'],))
+        
+        if(len(previous_periode_photo) == 0) :
+            raise HTTPException(status_code=404, detail={"message" : "Foto Tidak ditemukan"})
+        
+        current_file_remote_path      = "files/"+current_periode_photo[0]['attachment']
+        current_file_target_path      = "app/photos/"+str(uuid.uuid4())+".png"
+        
+        previous_file_remote_path     = "files/"+previous_periode_photo[0]['attachment']
+        previous_file_target_path     = "app/photos_compare/"+str(uuid.uuid4())+".png"
+        
+        ftp_downloader  = FTPDownloader(self.ftp_host, self.ftp_username, self.ftp_password)
+        ftp_downloader.connect()
+        ftp_downloader.download_file(current_file_remote_path, current_file_target_path)
+        ftp_downloader.download_file(previous_file_remote_path, previous_file_target_path)
+        ftp_downloader.disconnect()
+        
+        # Comparing between two images
+        try:
+            fr  = DeepFaceMethode(current_file_target_path, previous_file_target_path, method)  
+            res = fr.process()  
+        except Exception as e:
+            self.delete_file(current_file_target_path)
+            self.delete_file(previous_file_target_path)
+            raise HTTPException(status_code=422, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
+        
+        self.delete_file(current_file_target_path)
+        self.delete_file(previous_file_target_path)
+        
+        res_data = {
+            'no_pensiun' : current_periode_result[0]['no_pensiun'],   
+            'penerima_mp' : current_periode_result[0]['nama_penerima'], 
+            'data_pembanding' : 'autentikasi', 
+            'data_tahun' : current_periode_result[0]['tahun_pelaporan'], 
+            'data_id' : current_periode_result[0]['id'], 
+            'accuracy' : 100-(res['distance']*100),
+            'result' : res
+        }
+        
+        log.make_log(res_data)
+        
+        return res_data
+        
     def delete_file(self, file):
         if os.path.exists(file):
             os.remove(file)
@@ -145,6 +216,17 @@ class Recognition:
         file = "app/log/log_"+tanggal+".log"
         if os.path.exists(file):
             os.remove(file)
+            
+    def clearAllLog(self):
+        log_directory = "app/log"
+        log_files_pattern = os.path.join(log_directory, "*.log")
+        log_files = glob.glob(log_files_pattern)
+        counter = 0
+        for log_file in log_files:
+            counter += 1
+            os.remove(log_file)
+        
+        return "Successfully removed " + str(counter) + " log(s)."
     
     def getLog(self):
         try:
@@ -181,6 +263,22 @@ class Recognition:
         except Exception as e:
             print(f"Error parsing line: {e}")
             return None
+    
+    def photoAnalyser(self, img):
+        img_path = 'app/photos/'+str(uuid.uuid4())+'.'+img.filename.split('.')[1]
+        
+        with open(img_path, "wb") as local_file:
+            local_file.write(img.file.read())
+            
+        try:
+            da      = DeepFaceAnalyse(img_path)
+            result  = da.analyze() 
+            self.delete_file(img_path)
+            return result
+            return 
+        except Exception as e:
+            self.delete_file(img_path)
+            raise HTTPException(status_code=422, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
         
     def compareTwoFace(self, img1, img2, method = "SFace"):
         img1_path = 'app/photos/'+str(uuid.uuid4())+'.'+img1.filename.split('.')[1]
@@ -196,11 +294,10 @@ class Recognition:
             fr  = DeepFaceMethode(img1_path, img2_path, method)  
             res = fr.process() 
             res["accuracy"] = 100-(res['distance']*100)
+            self.delete_file(img1_path)
+            self.delete_file(img2_path)
             return res
         except Exception as e:
             self.delete_file(img1_path)
             self.delete_file(img2_path)
             raise HTTPException(status_code=422, detail={"message" : "Gambar tidak valid, resolusi terlalu rendah atau tidak ada objek wajah terdeteksi", "errors" : str(e)})
-        
-        self.delete_file(img1_path)
-        self.delete_file(img2_path)

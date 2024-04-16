@@ -16,3 +16,4 @@ class DeepFaceMethode:
         
     def process(self):
         return DeepFace.verify(img1_path = self.image1, img2_path = self.image2, model_name=self.method)
+    

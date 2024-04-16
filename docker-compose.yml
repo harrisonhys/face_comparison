@@ -11,3 +11,5 @@ services:
       - ./requirements.txt:/code/requirements.txt
       - ./.env:/code/.env
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+    logging:
+      driver: ${LOGGING_DRIVER}
